@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actuator Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .status-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-running {
+            color: #28a745;
+        }
+
+        .status-stopped {
+            color: #dc3545;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-start {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .btn-stop {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background: #c82333;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .time-control {
+            margin-top: 25px;
+        }
+
+        .time-control label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .time-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .time-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .time-input-group button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .time-input-group button:hover {
+            background: #5568d3;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎛️ Actuator Control</h1>
+        
+        <div class="status-card">
+            <div class="status-label">Status</div>
+            <div class="status-value" id="status">Loading...</div>
+        </div>
+
+        <div class="status-card">
+            <div class="status-label">Cycle Wait Time</div>
+            <div class="status-value" id="waitTime">-</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-start" id="startBtn" onclick="startActuator()">Start</button>
+            <button class="btn-stop" id="stopBtn" onclick="stopActuator()">Stop</button>
+        </div>
+
+        <div class="time-control">
+            <label for="waitTimeInput">Cycle Wait Time (seconds)</label>
+            <div class="time-input-group">
+                <input type="number" id="waitTimeInput" min="0" step="0.1" placeholder="10.0">
+                <button onclick="updateWaitTime()">Update</button>
+            </div>
+        </div>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        let currentStatus = null;
+
+        // Load status on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+            // Poll status every 2 seconds
+            setInterval(updateStatus, 2000);
+        });
+
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                currentStatus = data;
+                
+                // Update status display
+                const statusEl = document.getElementById('status');
+                if (data.running) {
+                    statusEl.textContent = 'Running';
+                    statusEl.className = 'status-value status-running';
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                } else {
+                    statusEl.textContent = 'Stopped';
+                    statusEl.className = 'status-value status-stopped';
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                }
+                
+                // Update wait time display
+                document.getElementById('waitTime').textContent = data.cycle_wait_time + 's';
+                document.getElementById('waitTimeInput').value = data.cycle_wait_time;
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                showMessage('Error loading status', 'error');
+            }
+        }
+
+        async function startActuator() {
+            try {
+                const response = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    updateStatus();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error starting actuator:', error);
+                showMessage('Error starting actuator', 'error');
+            }
+        }
+
+        async function stopActuator() {
+            try {
+                const response = await fetch('/api/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    updateStatus();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error stopping actuator:', error);
+                showMessage('Error stopping actuator', 'error');
+            }
+        }
+
+        async function updateWaitTime() {
+            const input = document.getElementById('waitTimeInput');
+            const time = parseFloat(input.value);
+            
+            if (isNaN(time) || time < 0) {
+                showMessage('Please enter a valid non-negative number', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cycle_wait_time', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ time: time })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    updateStatus();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error updating wait time:', error);
+                showMessage('Error updating wait time', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type + ' show';
+            
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // Allow Enter key to update wait time
+        document.getElementById('waitTimeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateWaitTime();
+            }
+        });
+    </script>
+</body>
+</html>
+
