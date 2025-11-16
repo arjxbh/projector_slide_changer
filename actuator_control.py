@@ -81,7 +81,7 @@ def extend_actuator(duration):
     Args:
         duration: Time in seconds to extend
     """
-    print(f"Extending actuator for {duration} seconds...")
+    print("Extending actuator for {} seconds...".format(duration))
     GPIO.output(RELAY_CHANNEL_1, RELAY_ON)   # Turn on relay 1
     GPIO.output(RELAY_CHANNEL_2, RELAY_OFF)  # Turn off relay 2
     
@@ -99,7 +99,7 @@ def retract_actuator(duration):
     Args:
         duration: Time in seconds to retract
     """
-    print(f"Retracting actuator for {duration} seconds...")
+    print("Retracting actuator for {} seconds...".format(duration))
     GPIO.output(RELAY_CHANNEL_1, RELAY_OFF)  # Turn off relay 1
     GPIO.output(RELAY_CHANNEL_2, RELAY_ON)   # Turn on relay 2
     
@@ -126,7 +126,7 @@ def run_cycle():
     retract_actuator(RETRACT_TIME)
     
     # Wait before next cycle
-    print(f"Waiting {WAIT_TIME} seconds before next cycle...")
+    print("Waiting {} seconds before next cycle...".format(WAIT_TIME))
     time.sleep(WAIT_TIME)
 
 
@@ -137,11 +137,11 @@ def main():
     
     print("Linear Actuator Control System")
     print("="*50)
-    print(f"Relay Channel 1: GPIO {RELAY_CHANNEL_1}")
-    print(f"Relay Channel 2: GPIO {RELAY_CHANNEL_2}")
-    print(f"Extend time: {EXTEND_TIME} seconds")
-    print(f"Retract time: {RETRACT_TIME} seconds")
-    print(f"Wait time: {WAIT_TIME} seconds")
+    print("Relay Channel 1: GPIO {}".format(RELAY_CHANNEL_1))
+    print("Relay Channel 2: GPIO {}".format(RELAY_CHANNEL_2))
+    print("Extend time: {} seconds".format(EXTEND_TIME))
+    print("Retract time: {} seconds".format(RETRACT_TIME))
+    print("Wait time: {} seconds".format(WAIT_TIME))
     print("="*50)
     print("Press Ctrl+C to stop")
     print()
@@ -153,11 +153,11 @@ def main():
         cycle_count = 0
         while running:
             cycle_count += 1
-            print(f"\nCycle #{cycle_count}")
+            print("\nCycle #{}".format(cycle_count))
             run_cycle()
             
     except Exception as e:
-        print(f"Error: {e}")
+        print("Error: {}".format(e))
         stop_actuator()
         GPIO.cleanup()
         sys.exit(1)

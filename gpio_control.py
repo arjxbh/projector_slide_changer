@@ -50,19 +50,19 @@ def set_gpio(pin, status, low_level=False):
     if status.lower() == 'on':
         if low_level:
             GPIO.output(pin, GPIO.LOW)   # LOW = ON for low-level trigger
-            print(f"GPIO {pin} set to ON (LOW - for low-level trigger device)")
+            print("GPIO {} set to ON (LOW - for low-level trigger device)".format(pin))
         else:
             GPIO.output(pin, GPIO.HIGH)  # HIGH = ON for standard GPIO
-            print(f"GPIO {pin} set to ON (HIGH)")
+            print("GPIO {} set to ON (HIGH)".format(pin))
     elif status.lower() == 'off':
         if low_level:
             GPIO.output(pin, GPIO.HIGH)  # HIGH = OFF for low-level trigger
-            print(f"GPIO {pin} set to OFF (HIGH - for low-level trigger device)")
+            print("GPIO {} set to OFF (HIGH - for low-level trigger device)".format(pin))
         else:
             GPIO.output(pin, GPIO.LOW)   # LOW = OFF for standard GPIO
-            print(f"GPIO {pin} set to OFF (LOW)")
+            print("GPIO {} set to OFF (LOW)".format(pin))
     else:
-        print(f"Error: Status must be 'on' or 'off', got '{status}'")
+        print("Error: Status must be 'on' or 'off', got '{}'".format(status))
         sys.exit(1)
 
 
@@ -107,7 +107,7 @@ Examples:
     
     # Validate GPIO pin number (common BCM GPIO pins are 2-27, but some are reserved)
     if args.pin < 2 or args.pin > 27:
-        print(f"Warning: GPIO pin {args.pin} may not be valid. Common BCM GPIO pins are 2-27.")
+        print("Warning: GPIO pin {} may not be valid. Common BCM GPIO pins are 2-27.".format(args.pin))
         response = input("Continue anyway? (y/n): ")
         if response.lower() != 'y':
             sys.exit(0)
@@ -120,13 +120,13 @@ Examples:
             GPIO.cleanup()
             print("GPIO cleaned up")
         else:
-            print(f"GPIO {args.pin} is now set. Use --cleanup flag to reset GPIO state.")
+            print("GPIO {} is now set. Use --cleanup flag to reset GPIO state.".format(args.pin))
             
     except ValueError as e:
-        print(f"Error: Invalid GPIO pin number - {e}")
+        print("Error: Invalid GPIO pin number - {}".format(e))
         sys.exit(1)
     except Exception as e:
-        print(f"Error: {e}")
+        print("Error: {}".format(e))
         GPIO.cleanup()
         sys.exit(1)
 
