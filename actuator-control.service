@@ -1,0 +1,17 @@
+[Unit]
+Description=Linear Actuator Control Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/projector/projector_slide_changer
+ExecStart=/usr/bin/python3 /home/pi/projector/projector_slide_changer/actuator_control.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
