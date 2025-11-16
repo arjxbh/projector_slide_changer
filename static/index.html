@@ -128,23 +128,67 @@
         .time-input-group {
             display: flex;
             gap: 10px;
+            align-items: stretch;
+        }
+
+        .time-input-wrapper {
+            flex: 1;
+            display: flex;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .time-input-wrapper:focus-within {
+            border-color: #667eea;
         }
 
         .time-input-group input {
             flex: 1;
             padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border: none;
             font-size: 16px;
-            transition: border-color 0.3s ease;
-        }
-
-        .time-input-group input:focus {
             outline: none;
-            border-color: #667eea;
         }
 
-        .time-input-group button {
+        .arrow-buttons {
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .arrow-btn {
+            flex: 1;
+            padding: 0;
+            width: 40px;
+            background: #f8f9fa;
+            color: #667eea;
+            border: none;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .arrow-btn:last-child {
+            border-bottom: none;
+        }
+
+        .arrow-btn:hover {
+            background: #e9ecef;
+        }
+
+        .arrow-btn:active {
+            background: #dee2e6;
+        }
+
+        .time-input-group button.update-btn {
             padding: 12px 24px;
             background: #667eea;
             color: white;
@@ -156,7 +200,7 @@
             transition: background 0.3s ease;
         }
 
-        .time-input-group button:hover {
+        .time-input-group button.update-btn:hover {
             background: #5568d3;
         }
 
@@ -234,8 +278,14 @@
         <div class="time-control">
             <label for="waitTimeInput">Cycle Wait Time (seconds)</label>
             <div class="time-input-group">
-                <input type="number" id="waitTimeInput" min="0" step="0.1" placeholder="10.0">
-                <button onclick="updateWaitTime()">Update</button>
+                <div class="time-input-wrapper">
+                    <input type="number" id="waitTimeInput" min="0" step="0.1" placeholder="10.0">
+                    <div class="arrow-buttons">
+                        <button class="arrow-btn" onclick="incrementWaitTime()" title="Increase by 1 second">▲</button>
+                        <button class="arrow-btn" onclick="decrementWaitTime()" title="Decrease by 1 second">▼</button>
+                    </div>
+                </div>
+                <button class="update-btn" onclick="updateWaitTime()">Update</button>
             </div>
         </div>
 
@@ -358,6 +408,22 @@
                 console.error('Error updating wait time:', error);
                 showMessage('Error updating wait time', 'error');
             }
+        }
+
+        async function incrementWaitTime() {
+            const input = document.getElementById('waitTimeInput');
+            const currentTime = parseFloat(input.value) || 0;
+            const newTime = Math.max(0, currentTime + 1);
+            input.value = newTime;
+            await updateWaitTime();
+        }
+
+        async function decrementWaitTime() {
+            const input = document.getElementById('waitTimeInput');
+            const currentTime = parseFloat(input.value) || 0;
+            const newTime = Math.max(0, currentTime - 1);
+            input.value = newTime;
+            await updateWaitTime();
         }
 
         function showMessage(text, type) {
