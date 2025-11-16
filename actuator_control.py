@@ -162,12 +162,7 @@ def actuator_control_loop():
         print("Initial retraction...")
         retract_actuator(INITIAL_RETRACT_TIME)
         
-        # Wait before starting cycle
-        with lock:
-            current_wait = cycle_wait_time
-        print("Waiting {} seconds before starting cycle...".format(current_wait))
-        time.sleep(current_wait)
-        
+        # Start cycling immediately (no wait before first cycle)
         # Main loop
         cycle_count = 0
         while running:
