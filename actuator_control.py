@@ -31,8 +31,8 @@ RELAY_CHANNEL_2 = 3   # GPIO pin for relay channel 2
 
 # Timing configuration (in seconds)
 INITIAL_RETRACT_TIME = 3.0   # Initial retraction on startup
-CYCLE_EXTEND_TIME = 2.0      # Extend time in cycle
-CYCLE_RETRACT_TIME = 2.0     # Retract time in cycle
+CYCLE_EXTEND_TIME = 3.0      # Extend time in cycle
+CYCLE_RETRACT_TIME = 3.0     # Retract time in cycle
 STOP_DELAY = 0.1             # Stop delay between extend/retract (100ms)
 CYCLE_WAIT_TIME = 10.0       # Wait time between cycles
 
@@ -88,8 +88,8 @@ def extend_actuator(duration):
         duration: Time in seconds to extend
     """
     print("Extending actuator for {} seconds...".format(duration))
-    GPIO.output(RELAY_CHANNEL_1, RELAY_OFF)  # Both OFF = Extend
-    GPIO.output(RELAY_CHANNEL_2, RELAY_OFF)
+    GPIO.output(RELAY_CHANNEL_1, RELAY_ON)  # Both ON = Extend
+    GPIO.output(RELAY_CHANNEL_2, RELAY_ON)
     
     time.sleep(duration)
     
@@ -105,8 +105,8 @@ def retract_actuator(duration):
         duration: Time in seconds to retract
     """
     print("Retracting actuator for {} seconds...".format(duration))
-    GPIO.output(RELAY_CHANNEL_1, RELAY_ON)   # Both ON = Retract
-    GPIO.output(RELAY_CHANNEL_2, RELAY_ON)
+    GPIO.output(RELAY_CHANNEL_1, RELAY_OFF)   # Both OFF = Retract
+    GPIO.output(RELAY_CHANNEL_2, RELAY_OFF)
     
     time.sleep(duration)
     
