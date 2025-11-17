@@ -32,9 +32,9 @@ RELAY_CHANNEL_1 = 2   # GPIO pin for relay channel 1
 RELAY_CHANNEL_2 = 3   # GPIO pin for relay channel 2
 
 # Timing configuration (in seconds)
-INITIAL_RETRACT_TIME = 3.0   # Initial retraction on startup
-CYCLE_EXTEND_TIME = 3.0      # Extend time in cycle
-CYCLE_RETRACT_TIME = 3.0     # Retract time in cycle
+INITIAL_RETRACT_TIME = 1.0   # Initial retraction on startup
+CYCLE_EXTEND_TIME = 3.5      # Extend time in cycle
+CYCLE_RETRACT_TIME = 3.5     # Retract time in cycle
 STOP_DELAY = 0.1             # Stop delay between extend/retract (100ms)
 CYCLE_WAIT_TIME = 10.0       # Wait time between cycles
 
