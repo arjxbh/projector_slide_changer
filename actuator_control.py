@@ -261,6 +261,66 @@ def update_cycle_wait_time():
         return jsonify({'success': False, 'message': 'Invalid time value'}), 400
 
 
+@app.route('/api/open', methods=['POST'])
+def open_actuator():
+    """Open (extend) the actuator and pause cycling if running"""
+    global running
+    
+    # Stop cycling if it's running
+    was_running = False
+    with lock:
+        if running:
+            running = False
+            was_running = True
+    
+    # Stop the actuator immediately if cycling was running
+    if was_running:
+        stop_actuator()
+    
+    # Ensure GPIO is initialized
+    setup_gpio()
+    
+    # Execute the open action
+    try:
+        extend_actuator(CYCLE_EXTEND_TIME)
+        message = 'Actuator opened'
+        if was_running:
+            message += ' (cycling paused)'
+        return jsonify({'success': True, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error opening actuator: {str(e)}'}), 500
+
+
+@app.route('/api/close', methods=['POST'])
+def close_actuator():
+    """Close (retract) the actuator and pause cycling if running"""
+    global running
+    
+    # Stop cycling if it's running
+    was_running = False
+    with lock:
+        if running:
+            running = False
+            was_running = True
+    
+    # Stop the actuator immediately if cycling was running
+    if was_running:
+        stop_actuator()
+    
+    # Ensure GPIO is initialized
+    setup_gpio()
+    
+    # Execute the close action
+    try:
+        retract_actuator(CYCLE_RETRACT_TIME)
+        message = 'Actuator closed'
+        if was_running:
+            message += ' (cycling paused)'
+        return jsonify({'success': True, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error closing actuator: {str(e)}'}), 500
+
+
 def signal_handler(sig, frame):
     """Handle Ctrl+C gracefully"""
     global running
@@ -300,6 +360,8 @@ def main():
     print("  POST /api/start - Start actuator cycling")
     print("  POST /api/stop - Stop actuator cycling")
     print("  POST /api/cycle_wait_time - Update cycle wait time")
+    print("  POST /api/open - Open (extend) actuator")
+    print("  POST /api/close - Close (retract) actuator")
     print("="*50)
     print("Press Ctrl+C to stop")
     print()

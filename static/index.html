@@ -109,6 +109,24 @@
             background: #c82333;
         }
 
+        .btn-open {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-open:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .btn-close {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-close:hover:not(:disabled) {
+            background: #545b62;
+        }
+
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -271,6 +289,11 @@
             <button class="btn-stop" id="stopBtn" onclick="stopActuator()">Stop</button>
         </div>
 
+        <div class="button-group">
+            <button class="btn-open" id="openBtn" onclick="openActuator()">Open</button>
+            <button class="btn-close" id="closeBtn" onclick="closeActuator()">Close</button>
+        </div>
+
         <div class="time-control">
             <label for="waitTimeInput">Cycle Wait Time (seconds)</label>
             <div class="time-input-group">
@@ -370,6 +393,52 @@
             } catch (error) {
                 console.error('Error stopping actuator:', error);
                 showMessage('Error stopping actuator', 'error');
+            }
+        }
+
+        async function openActuator() {
+            try {
+                const response = await fetch('/api/open', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    updateStatus();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error opening actuator:', error);
+                showMessage('Error opening actuator', 'error');
+            }
+        }
+
+        async function closeActuator() {
+            try {
+                const response = await fetch('/api/close', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    updateStatus();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error closing actuator:', error);
+                showMessage('Error closing actuator', 'error');
             }
         }
 
