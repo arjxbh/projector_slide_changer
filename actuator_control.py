@@ -288,7 +288,7 @@ def open_actuator():
             message += ' (cycling paused)'
         return jsonify({'success': True, 'message': message})
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error opening actuator: {str(e)}'}), 500
+        return jsonify({'success': False, 'message': 'Error opening actuator: {}'.format(e)}), 500
 
 
 @app.route('/api/close', methods=['POST'])
@@ -318,7 +318,7 @@ def close_actuator():
             message += ' (cycling paused)'
         return jsonify({'success': True, 'message': message})
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Error closing actuator: {str(e)}'}), 500
+        return jsonify({'success': False, 'message': 'Error closing actuator: {}'.format(e)}), 500
 
 
 def signal_handler(sig, frame):
