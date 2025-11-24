@@ -54,6 +54,7 @@ cycle_wait_time = 10.0  # Default cycle wait time (will be set from CYCLE_WAIT_T
 cycle_thread = None
 lock = threading.Lock()
 gpio_initialized = False
+current_state = 'stopped'
 
 # Flask app
 app = Flask(__name__, static_folder='static')
@@ -67,6 +68,14 @@ def signal_handler(sig, frame):
     stop_actuator()
     GPIO.cleanup()
     sys.exit(0)
+
+
+def set_state(new_state):
+    """Update the current actuator state"""
+    global current_state
+    with lock:
+        current_state = new_state
+    print("State set to {}".format(new_state))
 
 
 def setup_gpio():
@@ -84,6 +93,7 @@ def setup_gpio():
     GPIO.output(RELAY_CHANNEL_1, RELAY_ON)
     GPIO.output(RELAY_CHANNEL_2, RELAY_OFF)
     gpio_initialized = True
+    set_state('stopped')
     print("GPIO initialized")
 
 
@@ -91,6 +101,7 @@ def stop_actuator():
     """Stop the actuator by setting GPIO pins to different states"""
     GPIO.output(RELAY_CHANNEL_1, RELAY_ON)   # One ON
     GPIO.output(RELAY_CHANNEL_2, RELAY_OFF)  # One OFF
+    set_state('stopped')
     print("Actuator stopped")
 
 
@@ -101,6 +112,7 @@ def extend_actuator(duration):
     Args:
         duration: Time in seconds to extend
     """
+    set_state('opening')
     print("Extending actuator for {} seconds...".format(duration))
     GPIO.output(RELAY_CHANNEL_1, RELAY_ON)  # Both ON = Extend
     GPIO.output(RELAY_CHANNEL_2, RELAY_ON)
@@ -118,6 +130,7 @@ def retract_actuator(duration):
     Args:
         duration: Time in seconds to retract
     """
+    set_state('closing')
     print("Retracting actuator for {} seconds...".format(duration))
     GPIO.output(RELAY_CHANNEL_1, RELAY_OFF)   # Both OFF = Retract
     GPIO.output(RELAY_CHANNEL_2, RELAY_OFF)
@@ -146,6 +159,7 @@ def run_cycle():
     # Wait before next cycle (use current cycle_wait_time)
     with lock:
         current_wait = cycle_wait_time
+    set_state('waiting')
     print("Waiting {} seconds before next cycle...".format(current_wait))
     time.sleep(current_wait)
 
@@ -191,9 +205,11 @@ def get_status():
     with lock:
         is_running = running
         wait_time = cycle_wait_time
+        state = current_state
     return jsonify({
         'running': is_running,
-        'cycle_wait_time': wait_time
+        'cycle_wait_time': wait_time,
+        'state': state
     })
 
 
@@ -321,6 +337,34 @@ def close_actuator():
         return jsonify({'success': False, 'message': 'Error closing actuator: {}'.format(e)}), 500
 
 
+@app.route('/api/next', methods=['POST'])
+def next_cycle():
+    """Run a single open/close cycle and pause cycling if running"""
+    global running
+    
+    was_running = False
+    with lock:
+        if running:
+            running = False
+            was_running = True
+    
+    if was_running:
+        stop_actuator()
+    
+    setup_gpio()
+    
+    try:
+        extend_actuator(CYCLE_EXTEND_TIME)
+        time.sleep(STOP_DELAY)
+        retract_actuator(CYCLE_RETRACT_TIME)
+        message = 'Completed one open/close cycle'
+        if was_running:
+            message += ' (cycling paused)'
+        return jsonify({'success': True, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Error running next cycle: {}'.format(e)}), 500
+
+
 def signal_handler(sig, frame):
     """Handle Ctrl+C gracefully"""
     global running
@@ -362,6 +406,7 @@ def main():
     print("  POST /api/cycle_wait_time - Update cycle wait time")
     print("  POST /api/open - Open (extend) actuator")
     print("  POST /api/close - Close (retract) actuator")
+    print("  POST /api/next - Run single open/close cycle")
     print("="*50)
     print("Press Ctrl+C to stop")
     print()

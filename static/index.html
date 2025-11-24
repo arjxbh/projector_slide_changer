@@ -68,10 +68,15 @@
             color: #dc3545;
         }
 
+        .status-waiting {
+            color: #ffc107;
+        }
+
         .button-group {
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
         }
 
         button {
@@ -127,9 +132,37 @@
             background: #545b62;
         }
 
+        .btn-next {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            background: #117a8b;
+        }
+
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .control-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .control-section:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .control-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .time-control {
@@ -284,26 +317,33 @@
             <div class="status-value" id="waitTime">-</div>
         </div>
 
-        <div class="button-group">
-            <button class="btn-start" id="startBtn" onclick="startActuator()">Start</button>
-            <button class="btn-stop" id="stopBtn" onclick="stopActuator()">Stop</button>
-        </div>
+        <div class="control-section">
+            <h2>Cycle Control</h2>
+            <div class="button-group">
+                <button class="btn-start" id="startBtn" onclick="startActuator()">Start</button>
+                <button class="btn-stop" id="stopBtn" onclick="stopActuator()">Stop</button>
+            </div>
 
-        <div class="button-group">
-            <button class="btn-open" id="openBtn" onclick="openActuator()">Open</button>
-            <button class="btn-close" id="closeBtn" onclick="closeActuator()">Close</button>
-        </div>
-
-        <div class="time-control">
-            <label for="waitTimeInput">Cycle Wait Time (seconds)</label>
-            <div class="time-input-group">
-                <div class="time-input-wrapper">
-                    <input type="number" id="waitTimeInput" min="0" step="0.1" placeholder="10.0">
-                    <div class="arrow-buttons">
-                        <button type="button" class="arrow-btn" onclick="incrementWaitTime()" title="Increase by 1 second">▲</button>
-                        <button type="button" class="arrow-btn" onclick="decrementWaitTime()" title="Decrease by 1 second">▼</button>
+            <div class="time-control">
+                <label for="waitTimeInput">Cycle Wait Time (seconds)</label>
+                <div class="time-input-group">
+                    <div class="time-input-wrapper">
+                        <input type="number" id="waitTimeInput" min="0" step="0.1" placeholder="10.0">
+                        <div class="arrow-buttons">
+                            <button type="button" class="arrow-btn" onclick="incrementWaitTime()" title="Increase by 1 second">▲</button>
+                            <button type="button" class="arrow-btn" onclick="decrementWaitTime()" title="Decrease by 1 second">▼</button>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h2>Manual Control</h2>
+            <div class="button-group">
+                <button class="btn-open" id="openBtn" onclick="openActuator()">Open</button>
+                <button class="btn-close" id="closeBtn" onclick="closeActuator()">Close</button>
+                <button class="btn-next" id="nextBtn" onclick="triggerNextCycle()">Next</button>
             </div>
         </div>
 
@@ -329,14 +369,19 @@
                 
                 // Update status display
                 const statusEl = document.getElementById('status');
+                const stateClassMap = {
+                    opening: 'status-running',
+                    closing: 'status-running',
+                    waiting: 'status-waiting',
+                    stopped: 'status-stopped'
+                };
+                statusEl.textContent = formatState(data.state, data.running);
+                statusEl.className = 'status-value ' + (stateClassMap[data.state] || '');
+                
                 if (data.running) {
-                    statusEl.textContent = 'Running';
-                    statusEl.className = 'status-value status-running';
                     document.getElementById('startBtn').disabled = true;
                     document.getElementById('stopBtn').disabled = false;
                 } else {
-                    statusEl.textContent = 'Stopped';
-                    statusEl.className = 'status-value status-stopped';
                     document.getElementById('startBtn').disabled = false;
                     document.getElementById('stopBtn').disabled = true;
                 }
@@ -442,6 +487,29 @@
             }
         }
 
+        async function triggerNextCycle() {
+            try {
+                const response = await fetch('/api/next', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    updateStatus();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error triggering next cycle:', error);
+                showMessage('Error triggering next cycle', 'error');
+            }
+        }
+
         async function updateWaitTime() {
             const input = document.getElementById('waitTimeInput');
             const time = parseFloat(input.value);
@@ -511,6 +579,13 @@
         document.getElementById('waitTimeInput').addEventListener('blur', function() {
             updateWaitTime();
         });
+
+        function formatState(state, isRunning) {
+            if (!state) {
+                return isRunning ? 'Running' : 'Stopped';
+            }
+            return state.charAt(0).toUpperCase() + state.slice(1);
+        }
     </script>
 </body>
 </html>
